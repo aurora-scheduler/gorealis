@@ -1,4 +1,4 @@
-module github.com/paypal/gorealis/v2
+module github.com/aurora-scheduler/gorealis/v2
 
 require (
 	github.com/apache/thrift v0.12.0
