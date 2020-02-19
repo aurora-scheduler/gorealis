@@ -18,7 +18,7 @@ import (
 	"fmt"
 	"testing"
 
-	realis "github.com/paypal/gorealis/v2"
+	realis "github.com/aurora-scheduler/gorealis/v2"
 	"github.com/stretchr/testify/assert"
 )
 

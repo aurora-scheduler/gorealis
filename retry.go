@@ -24,8 +24,8 @@ import (
 	"time"
 
 	"github.com/apache/thrift/lib/go/thrift"
-	"github.com/paypal/gorealis/v2/gen-go/apache/aurora"
-	"github.com/paypal/gorealis/v2/response"
+	"github.com/aurora-scheduler/gorealis/v2/gen-go/apache/aurora"
+	"github.com/aurora-scheduler/gorealis/v2/response"
 	"github.com/pkg/errors"
 )
 

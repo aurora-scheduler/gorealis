@@ -1,4 +1,4 @@
-# gorealis [![GoDoc](https://godoc.org/github.com/paypal/gorealis?status.svg)](https://godoc.org/github.com/paypal/gorealis) [![Build Status](https://travis-ci.org/paypal/gorealis.svg?branch=master)](https://travis-ci.org/paypal/gorealis) [![codecov](https://codecov.io/gh/paypal/gorealis/branch/master-v2.0/graph/badge.svg)](https://codecov.io/gh/paypal/gorealis/branch/master-v2.0)
+# gorealis [![GoDoc](https://godoc.org/github.com/aurora-scheduler/gorealis?status.svg)](https://godoc.org/github.com/aurora-scheduler/gorealis) [![codecov](https://codecov.io/gh/aurora-scheduler/gorealis/branch/master/graph/badge.svg)](https://codecov.io/gh/aurora-scheduler/gorealis/branch/master)
 
 Go library for interacting with [Aurora Scheduler](https://github.com/aurora-scheduler/aurora).
 

@@ -18,7 +18,7 @@ import (
 	"time"
 
 	"github.com/apache/thrift/lib/go/thrift"
-	"github.com/paypal/gorealis/v2/gen-go/apache/aurora"
+	"github.com/aurora-scheduler/gorealis/v2/gen-go/apache/aurora"
 )
 
 // Structure to collect all information required to create job update

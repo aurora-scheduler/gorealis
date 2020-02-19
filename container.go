@@ -15,7 +15,7 @@
 package realis
 
 import (
-	"github.com/paypal/gorealis/v2/gen-go/apache/aurora"
+	"github.com/aurora-scheduler/gorealis/v2/gen-go/apache/aurora"
 )
 
 type Container interface {

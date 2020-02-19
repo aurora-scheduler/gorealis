@@ -4,7 +4,7 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/paypal/gorealis/v2/gen-go/apache/aurora"
+	"github.com/aurora-scheduler/gorealis/v2/gen-go/apache/aurora"
 	"github.com/pkg/errors"
 )
 
