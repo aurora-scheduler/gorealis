@@ -37,3 +37,10 @@ _testmain.go
 
 # Output of the go coverage tool, specifically when used with LiteIDE
 *.out
+
+# Example client build
+examples/client
+examples/jsonClient
+
+# Use checksum database
+go.sum
