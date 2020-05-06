@@ -244,3 +244,68 @@ func (c *Client) MonitorHostMaintenance(hosts []string,
 		}
 	}
 }
+
+// AutoPaused monitor is a special monitor for auto pause enabled batch updates. This monitor ensures that the update
+// being monitored is capable of auto pausing and has auto pausing enabled. After verifying this information,
+// the monitor watches for the job to enter the ROLL_FORWARD_PAUSED state and calculates the current batch
+// the update is in using information from the update configuration.
+func (c *Client) MonitorAutoPausedUpdate(key aurora.JobUpdateKey, interval, timeout time.Duration) (int, error) {
+	key.Job = &aurora.JobKey{
+		Role:        key.Job.Role,
+		Environment: key.Job.Environment,
+		Name:        key.Job.Name,
+	}
+	query := aurora.JobUpdateQuery{
+		UpdateStatuses: aurora.ACTIVE_JOB_UPDATE_STATES,
+		Limit:          1,
+		Key:            &key,
+	}
+
+	updateDetails, err := c.JobUpdateDetails(query)
+	if err != nil {
+		return -1, errors.Wrap(err, "unable to get information about update")
+	}
+
+	if len(updateDetails) == 0 {
+		return -1, errors.Errorf("details for update could not be found")
+	}
+
+	updateStrategy := updateDetails[0].Update.Instructions.Settings.UpdateStrategy
+
+	var batchSizes []int32
+	switch {
+	case updateStrategy.IsSetVarBatchStrategy():
+		batchSizes = updateStrategy.VarBatchStrategy.GroupSizes
+		if !updateStrategy.VarBatchStrategy.AutopauseAfterBatch {
+			return -1, errors.Errorf("update does not have auto pause enabled")
+		}
+	case updateStrategy.IsSetBatchStrategy():
+		batchSizes = []int32{updateStrategy.BatchStrategy.GroupSize}
+		if !updateStrategy.BatchStrategy.AutopauseAfterBatch {
+			return -1, errors.Errorf("update does not have auto pause enabled")
+		}
+	default:
+		return -1, errors.Errorf("update is not using a batch update strategy")
+	}
+
+	query.UpdateStatuses = append(TerminalUpdateStates(), aurora.JobUpdateStatus_ROLL_FORWARD_PAUSED)
+	summary, err := c.MonitorJobUpdateQuery(query, interval, timeout)
+	if err != nil {
+		return -1, err
+	}
+
+	// Summary 0 is assumed to exist because MonitorJobUpdateQuery will return an error if there is Summaries
+	if summary[0].State.Status != aurora.JobUpdateStatus_ROLL_FORWARD_PAUSED {
+		return -1, errors.Errorf("update is in a terminal state %v", summary[0].State.Status)
+	}
+
+	updatingInstances := make(map[int32]struct{})
+	for _, e := range updateDetails[0].InstanceEvents {
+		// We only care about INSTANCE_UPDATING actions because we only care that they've been attempted
+		if e != nil && e.GetAction() == aurora.JobUpdateAction_INSTANCE_UPDATING {
+			updatingInstances[e.GetInstanceId()] = struct{}{}
+		}
+	}
+
+	return calculateCurrentBatch(int32(len(updatingInstances)), batchSizes), nil
+}

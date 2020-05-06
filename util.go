@@ -40,6 +40,18 @@ func init() {
 	}
 }
 
+// TerminalJobUpdateStates returns a slice containing all the terminal states an update may end up in.
+// This is a function in order to avoid having a slice that can be accidentally mutated.
+func TerminalUpdateStates() []aurora.JobUpdateStatus {
+	return []aurora.JobUpdateStatus{
+		aurora.JobUpdateStatus_ROLLED_FORWARD,
+		aurora.JobUpdateStatus_ROLLED_BACK,
+		aurora.JobUpdateStatus_ABORTED,
+		aurora.JobUpdateStatus_ERROR,
+		aurora.JobUpdateStatus_FAILED,
+	}
+}
+
 func validateAuroraAddress(address string) (string, error) {
 
 	// If no protocol defined, assume http
@@ -72,4 +84,23 @@ func validateAuroraAddress(address string) (string, error) {
 	}
 
 	return u.String(), nil
+}
+
+func calculateCurrentBatch(updatingInstances int32, batchSizes []int32) int {
+	for i, size := range batchSizes {
+		updatingInstances -= size
+		if updatingInstances <= 0 {
+			return i
+		}
+	}
+
+	// Overflow batches
+	batchCount := len(batchSizes) - 1
+	lastBatchIndex := len(batchSizes) - 1
+	batchCount += int(updatingInstances / batchSizes[lastBatchIndex])
+
+	if updatingInstances%batchSizes[lastBatchIndex] != 0 {
+		batchCount++
+	}
+	return batchCount
 }

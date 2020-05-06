@@ -7,6 +7,6 @@ require (
 	github.com/stretchr/testify v1.5.0
 )
 
-replace github.com/apache/thrift v0.12.0 => github.com/ridv/thrift v0.12.2
+replace github.com/apache/thrift v0.13.0 => github.com/ridv/thrift v0.13.1
 
 go 1.13

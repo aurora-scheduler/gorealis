@@ -26,6 +26,7 @@ import (
 	"github.com/aurora-scheduler/gorealis/v2/gen-go/apache/aurora"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 var r *realis.Client
@@ -698,7 +699,6 @@ func TestRealisClient_PartitionPolicy(t *testing.T) {
 		Environment("prod").
 		Role(role).
 		Name("create_thermos_job_partition_policy_test").
-		ExecutorName(aurora.AURORA_EXECUTOR_NAME).
 		ThermosExecutor(thermosExec).
 		CPU(.5).
 		RAM(64).
@@ -722,4 +722,104 @@ func TestRealisClient_PartitionPolicy(t *testing.T) {
 		assert.NoError(t, err)
 	}
 
+}
+
+func TestRealisClient_UpdateStrategies(t *testing.T) {
+	// Create a single job
+	job := realis.NewJob().
+		Environment("prod").
+		Role("vagrant").
+		ThermosExecutor(thermosExec).
+		CPU(.01).
+		RAM(4).
+		Disk(10).
+		InstanceCount(6).
+		IsService(true)
+
+	// Needed to populate the task config correctly
+	assert.NoError(t, job.BuildThermosPayload())
+
+	strategies := []struct {
+		jobUpdate *realis.JobUpdate
+		Name      string
+	}{
+		{
+			jobUpdate: realis.JobUpdateFromAuroraTask(job.AuroraTask()).
+				QueueUpdateStrategy(2).
+				InstanceCount(6).
+				WatchTime(1000),
+			Name: "Queue",
+		},
+		{
+			jobUpdate: realis.JobUpdateFromAuroraTask(job.AuroraTask()).
+				BatchUpdateStrategy(false, 2).
+				InstanceCount(6).
+				WatchTime(1000),
+			Name: "Batch",
+		},
+		{
+			jobUpdate: realis.JobUpdateFromAuroraTask(job.AuroraTask()).
+				VariableBatchStrategy(false, 1, 2, 3).
+				InstanceCount(6).
+				WatchTime(1000),
+			Name: "VarBatch",
+		},
+	}
+
+	for _, strategy := range strategies {
+		t.Run("TestRealisClient_UpdateStrategies_"+strategy.Name, func(t *testing.T) {
+			strategy.jobUpdate.Name("update_strategies_" + strategy.Name)
+			result, err := r.StartJobUpdate(strategy.jobUpdate, "")
+
+			require.NoError(t, err)
+			assert.NotNil(t, result)
+
+			var ok bool
+			var mErr error
+			key := *result.GetKey()
+
+			if ok, mErr = r.MonitorJobUpdate(key, 5, 240); !ok || mErr != nil {
+				// Update may already be in a terminal state so don't check for error
+				assert.NoError(t, r.AbortJobUpdate(key, "Monitor timed out."))
+			}
+			assert.NoError(t, r.KillJob(strategy.jobUpdate.JobKey()))
+		})
+	}
+}
+
+func TestRealisClient_BatchAwareAutoPause(t *testing.T) {
+	// Create a single job
+	job := realis.NewJob().
+		Environment("prod").
+		Role("vagrant").
+		Name("BatchAwareAutoPauseTest").
+		ThermosExecutor(thermosExec).
+		CPU(.01).
+		RAM(4).
+		Disk(10).
+		InstanceCount(6).
+		IsService(true)
+	updateGroups := []int32{1, 2, 3}
+	strategy := realis.JobUpdateFromAuroraTask(job.AuroraTask()).
+		VariableBatchStrategy(true, updateGroups...).
+		InstanceCount(6).
+		WatchTime(1000)
+
+	result, err := r.StartJobUpdate(strategy, "")
+	require.NoError(t, err)
+	require.NotNil(t, result)
+
+	key := *result.GetKey()
+
+	for i := range updateGroups {
+		curStep, mErr := r.MonitorAutoPausedUpdate(key, time.Second*5, time.Second*240)
+		if mErr != nil {
+			// Update may already be in a terminal state so don't check for error
+			assert.NoError(t, r.AbortJobUpdate(key, "Monitor timed out."))
+		}
+
+		assert.Equal(t, i, curStep)
+		require.NoError(t, r.ResumeJobUpdate(key, "auto resuming test"))
+	}
+	assert.NoError(t, r.KillJob(strategy.JobKey()))
 }
