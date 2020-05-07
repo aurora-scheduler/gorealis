@@ -131,8 +131,20 @@ func (j *JobUpdate) VariableBatchStrategy(autoPause bool, batchSizes ...int32) *
 	return j
 }
 
-func newUpdateSettings() *aurora.JobUpdateSettings {
+// SlaAware makes the scheduler enforce the SLA Aware policy if the job meets the SLA awareness criteria.
+// By default, the scheduler will only apply SLA Awareness to jobs in the production tier with 20 or more instances.
+func (j *JobUpdate) SlaAware(slaAware bool) *JobUpdate {
+	j.request.Settings.SlaAware = &slaAware
+	return j
+}
+// AddInstanceRange allows updates to only touch a certain specific range of instances
+func (j *JobUpdate) AddInstanceRange(first, last int32) *JobUpdate {
+	j.request.Settings.UpdateOnlyTheseInstances = append(j.request.Settings.UpdateOnlyTheseInstances,
+		&aurora.Range{First: first, Last:  last})
+	return j
+}
 
+func newUpdateSettings() *aurora.JobUpdateSettings {
 	us := aurora.JobUpdateSettings{}
 	// Mirrors defaults set by Pystachio
 	us.UpdateOnlyTheseInstances = []*aurora.Range{}
@@ -198,7 +210,7 @@ func (j *JobUpdate) Tier(tier string) *JobUpdate {
 	return j
 }
 
-func (j *JobUpdate) MaxFailure(maxFail int32) *JobUpdate {
+func (j *JobUpdate) TaskMaxFailure(maxFail int32) *JobUpdate {
 	j.task.MaxFailure(maxFail)
 	return j
 }
