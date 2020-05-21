@@ -22,28 +22,25 @@ Usage of ./client:
 ```
 
 ## Sample commands:
-These commands are set to run on a vagrant box. To be able to run the docker compose
-executor examples, the vagrant box must be configured properly to use the docker compose executor.
 
 ### Thermos
 
 #### Creating a Thermos job
 ```
-$ cd $GOPATH/src/github.com/paypal/gorealis/examples
-$ go run client.go -executor=thermos -url=http://192.168.33.7:8081 -cmd=create
+$ go run examples/client.go -url=http://localhost:8081 -executor=thermos -cmd=create
 ```
 #### Kill a Thermos job
 ```
-$ go run $GOPATH/src/github.com/paypal/gorealis/examples/client.go -executor=thermos -url=http://192.168.33.7:8081 -cmd=kill
+$ go run examples/client.gon -url=http://localhost:8081 -executor=thermos -cmd=kill
 ```
 
 ### Docker Compose executor (custom executor)
 
 #### Creating Docker Compose executor job
 ```
-$ go run $GOPATH/src/github.com/paypal/gorealis/examples/client.go -executor=compose -url=http://192.168.33.7:8081 -cmd=create
+$ go run examples/client.go -url=http://192.168.33.7:8081 -executor=compose -cmd=create
 ```
 #### Kill a Docker Compose executor job
 ```
-$ go run $GOPATH/src/github.com/paypal/gorealis/examples/client.go -executor=compose -url=http://192.168.33.7:8081 -cmd=kill
+$ go run examples/client.go -url=http://192.168.33.7:8081 -executor=compose -cmd=kill
 ```
