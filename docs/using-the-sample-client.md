@@ -31,7 +31,7 @@ $ go run examples/client.go -url=http://localhost:8081 -executor=thermos -cmd=cr
 ```
 #### Kill a Thermos job
 ```
-$ go run examples/client.gon -url=http://localhost:8081 -executor=thermos -cmd=kill
+$ go run examples/client.go -url=http://localhost:8081 -executor=thermos -cmd=kill
 ```
 
 ### Docker Compose executor (custom executor)
