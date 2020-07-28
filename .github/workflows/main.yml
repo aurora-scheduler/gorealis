@@ -22,5 +22,5 @@ jobs:
     - name: Create aurora/mesos docker cluster
       run: docker-compose up -d
     - name: Run tests
-      run: go test -timeout 20m -race -coverprofile=coverage.txt -covermode=atomic -v github.com/aurora-scheduler/gorealis/v2
+      run: go test -timeout 30m -race -coverprofile=coverage.txt -covermode=atomic -v github.com/aurora-scheduler/gorealis/v2
         
