@@ -137,10 +137,11 @@ func (j *JobUpdate) SlaAware(slaAware bool) *JobUpdate {
 	j.request.Settings.SlaAware = &slaAware
 	return j
 }
+
 // AddInstanceRange allows updates to only touch a certain specific range of instances
 func (j *JobUpdate) AddInstanceRange(first, last int32) *JobUpdate {
 	j.request.Settings.UpdateOnlyTheseInstances = append(j.request.Settings.UpdateOnlyTheseInstances,
-		&aurora.Range{First: first, Last:  last})
+		&aurora.Range{First: first, Last: last})
 	return j
 }
 
