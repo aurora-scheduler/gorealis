@@ -348,6 +348,19 @@ func (c *Client) GetJobUpdateSummaries(jobUpdateQuery *aurora.JobUpdateQuery) (*
 	return resp.GetResult_().GetGetJobUpdateSummariesResult_(), nil
 }
 
+func (c *Client) GetJobSummary(role string) (*aurora.JobSummaryResult_, error) {
+
+	resp, retryErr := c.thriftCallWithRetries(false, func() (*aurora.Response, error) {
+		return c.readonlyClient.GetJobSummary(context.TODO(), role)
+	})
+
+	if retryErr != nil {
+		return nil, errors.Wrap(retryErr, "error getting job summaries from Aurora Scheduler")
+	}
+
+	return resp.GetResult_().GetJobSummaryResult_(), nil
+}
+
 func (c *Client) GetJobs(role string) (*aurora.GetJobsResult_, error) {
 
 	var result *aurora.GetJobsResult_
